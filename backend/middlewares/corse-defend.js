@@ -1,4 +1,8 @@
 const allowedCors = [
+  'http://api.kate.diplom.nomoreparties.sbs/',
+  'https://api.kate.diplom.nomoreparties.sbs/',
+  'http://kate.diplom.nomoreparties.sbs/',
+  'https://kate.diplom.nomoreparties.sbs/',
   'http://localhost:3000',
   'https://localhost:3000',
 ];
