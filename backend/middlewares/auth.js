@@ -1,28 +1,26 @@
 const jwt = require('jsonwebtoken');
 const UnauthorizedError = require('../errors/unauthorized-error');
+const { devJwtKey } = require('../utils/config');
+const { AUTHORIZATION_REQUIRED, NODE_ENV, JWT_SECRET } = require('../utils/constants');
 
+// мидлвара авторизации - проверяет наличие токена и верифицирует его
 module.exports = (req, res, next) => {
-  try {
-    const { JWT_SECRET = 'strongest-key-ever' } = process.env;
-    const { authorization } = req.headers;
-    if (!authorization || !authorization.startsWith('Bearer ')) {
-      throw new UnauthorizedError('Необходима авторизация');
-    }
+  const { authorization } = req.headers;
 
-    const token = authorization.replace('Bearer ', '');
-    let payload;
-
-    try {
-      payload = jwt.verify(token, JWT_SECRET);
-    } catch (err) {
-      const Error = new UnauthorizedError('Необходима авторизация');
-      next(Error);
-    }
-
-    req.user = payload;
-
-    next();
-  } catch (err) {
-    next(err);
+  if (!authorization || !authorization.startsWith('Bearer ')) {
+    next(new UnauthorizedError(AUTHORIZATION_REQUIRED));
+    return; // выходим из функции при неудачной авторизации
   }
+
+  const token = authorization.replace('Bearer ', '');
+  let payload;
+
+  try {
+    payload = jwt.verify(token, NODE_ENV === 'production' ? JWT_SECRET : devJwtKey);
+  } catch (err) {
+    next(new UnauthorizedError(AUTHORIZATION_REQUIRED));
+  }
+  req.user = payload; // записываем пейлоуд в объект запроса
+
+  next();
 };

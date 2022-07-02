@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
+const isURL = require('validator/lib/isURL');
+const { WRONG_URL_FORMAT } = require('../utils/constants');
 
-const { Schema } = mongoose;
-
-const CardSchema = new Schema({
+const movieSchema = new mongoose.Schema({
   country: {
     type: String,
     required: true,
@@ -26,14 +26,26 @@ const CardSchema = new Schema({
   image: {
     type: String,
     required: true,
+    validate: {
+      validator: (v) => isURL(v),
+      message: WRONG_URL_FORMAT,
+    },
   },
-  trailer: {
+  trailerLink: {
     type: String,
     required: true,
+    validate: {
+      validator: (v) => isURL(v),
+      message: WRONG_URL_FORMAT,
+    },
   },
   thumbnail: {
     type: String,
     required: true,
+    validate: {
+      validator: (v) => isURL(v),
+      message: WRONG_URL_FORMAT,
+    },
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
@@ -41,7 +53,7 @@ const CardSchema = new Schema({
     required: true,
   },
   movieId: {
-    type: String,
+    type: Number,
     required: true,
   },
   nameRU: {
@@ -54,4 +66,4 @@ const CardSchema = new Schema({
   },
 });
 
-module.exports = mongoose.model('card', CardSchema);
+module.exports = mongoose.model('movie', movieSchema);

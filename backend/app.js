@@ -1,44 +1,46 @@
-const express = require('express');
-const { errors } = require('celebrate');
-const mongoose = require('mongoose');
 require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
 const helmet = require('helmet');
-
-const userRouter = require('./router/users');
-const movieRouter = require('./router/movies');
-const authRoute = require('./router/auth');
-
-const auth = require('./middlewares/auth');
-const errHandler = require('./middlewares/error-handler');
-const corsMiddleware = require('./middlewares/corse-defend');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const { errors } = require('celebrate');
+const { limiter, devDatabaseUrl } = require('./utils/config');
+const router = require('./routes/routes');
+const errorHandler = require('./middlewares/error-handler');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
+const { NODE_ENV, DATABASE_URL, PORT } = require('./utils/constants');
 
-const NotFoundError = require('./errors/not-found-error');
-const limiter = require('./utils/limiter');
-
-const { PORT = 3000, MONGO_URL = 'mongodb://localhost:27017/moviesdb' } = process.env;
 const app = express();
-async function main() {
-  await mongoose.connect(MONGO_URL);
-}
-main().catch((err) => console.log(err));
+
+const corsAllowed = [
+  'https://localhost:3001',
+  'http://localhost:3001',
+  'https://api.kate.diplom.nomoreparties.sbs',
+  'http://api.kate.diplom.nomoreparties.sbs',
+  'kate.diplom.nomoreparties.sbs',
+  'kate.diplom.nomoreparties.sbs',
+];
 
 app.use(requestLogger);
-app.use(limiter);
-app.use(express.json());
-app.use(corsMiddleware);
-app.use(helmet());
-app.use(authRoute);
-app.use(auth);
-app.use(userRouter);
-app.use(movieRouter);
-app.use((req, res, next) => {
-  next(new NotFoundError('Маршрут не найден'));
-});
+app.use(limiter); // подключаем rate-limiter
+app.use(cors({
+  credentials: true,
+  origin(origin, callback) {
+    if (corsAllowed.includes(origin) || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS Error'));
+    }
+  },
+}));
+app.use(bodyParser.json()); // для собирания JSON-формата
+app.use(helmet()); // настраиваем заголовки
+app.use(router);
 app.use(errorLogger);
-app.use(errors());
-app.use(errHandler);
+app.use(errors()); // обработчик ошибок celebrate
+app.use(errorHandler); // мидлвара централизованного обработчика ошибок
 
-app.listen(PORT, () => {
-  console.log('Server started');
-});
+mongoose.connect(NODE_ENV === 'production' ? DATABASE_URL : devDatabaseUrl);
+// eslint-disable-next-line no-console
+app.listen(PORT, () => console.log(`Запущен на https://localhost:${PORT}`));
