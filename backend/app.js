@@ -18,8 +18,8 @@ const corsAllowed = [
   'http://localhost:3001',
   'https://api.kate.diplom.nomoreparties.sbs',
   'http://api.kate.diplom.nomoreparties.sbs',
-  'https://kate.diplom.nomoreparties.sbs',
   'http://kate.diplom.nomoreparties.sbs',
+  'https://kate.diplom.nomoreparties.sbs',
 ];
 
 app.use(requestLogger);
