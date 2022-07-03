@@ -9,14 +9,12 @@ const {
   ACCESS_ERROR,
 } = require('../utils/constants');
 
-// GET /movies — возвращает все сохранённые текущим  пользователем фильмы
 const getMovies = (req, res, next) => {
   Movie.find({})
     .then((movies) => res.send(movies.reverse()))
     .catch(next);
 };
 
-// POST /movies — создаёт фильм с переданными в теле данными
 const createMovie = (req, res, next) => {
   const {
     country,
@@ -55,7 +53,6 @@ const createMovie = (req, res, next) => {
     });
 };
 
-// DELETE /movies/:movieId — удаляет сохранённый фильм по id
 const deleteMovie = (req, res, next) => {
   Movie.findById(req.params.movieId)
     .orFail(() => next(new NotFoundError(MOVIE_NOT_FOUND)))
